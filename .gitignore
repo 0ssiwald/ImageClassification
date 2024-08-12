@@ -2,6 +2,9 @@
 *.png
 *.jpg
 
+#folders from jupytor
+hyperband_dir/
+my_dir/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
