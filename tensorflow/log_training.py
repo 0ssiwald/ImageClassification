@@ -4,6 +4,7 @@ from datetime import datetime
 import tensorflow
 from contextlib import redirect_stdout
 import io
+from tensorflow.keras import layers, models, optimizers
 
 class TrainingLogger:
 
@@ -20,6 +21,7 @@ class TrainingLogger:
         self.test_accuracy = None
         self.test_loss = None 
         self.log_data = {}
+        self.trials_data = []
 
     def update_train_metrics(self, accuracy, val_accuracy, loss, val_loss):
         self.train_accuracy = accuracy
@@ -32,11 +34,26 @@ class TrainingLogger:
         self.test_loss = loss
 
     def capture_model_summary(self, model):
-        """Captures the model summary as a string."""
         stream = io.StringIO()
         with redirect_stdout(stream):
             model.summary()
-        self.model_summary = stream.getvalue()    
+        self.model_summary = stream.getvalue()   
+
+    def log_trial(self, trial):
+        # Logs a single trial's hyperparameters and evaluation metrics.
+        trial_data = {
+            "trial_id": trial.trial_id,
+            "hyperparameters": trial.hyperparameters.values,
+            "score": trial.score,
+            "best_step": trial.best_step,
+        }
+        self.trials_data.append(trial_data) 
+    
+    def trial_data_as_string(self):
+        trial_string = ""
+        for trial in self.trials_data:
+            trial_string += f'''{trial} \n'''
+        return trial_string
 
     def create_string(self):
         return f'''
@@ -51,9 +68,10 @@ class TrainingLogger:
 "test_accuracy": {self.test_accuracy},
 "test_loss": {self.test_loss},
 "timestamp": {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, 
-"model_summary": {self.model_summary}
-       
-        '''
+"model_summary": {self.model_summary},
+"trials_data": 
+{self.trial_data_as_string()}
+'''
 
     def save_log_to_json(self, directory='training_logs'):
         # Create the directory if it doesn't exist
@@ -78,6 +96,7 @@ class TrainingLogger:
             "test_loss": self.test_loss,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "model_summary": self.model_summary,
+            "trials_data": self.trials_data,
         }
 
         # Read the existing file or create a new list if the file doesn't exist
@@ -118,3 +137,5 @@ class TrainingLogger:
         self.print_log()
         self.save_log_to_json()
         self.save_log_to_txt()
+
+    
