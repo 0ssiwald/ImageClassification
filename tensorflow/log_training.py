@@ -4,7 +4,8 @@ from datetime import datetime
 import tensorflow
 from contextlib import redirect_stdout
 import io
-from tensorflow.keras import layers, models, optimizers
+from tensorflow import keras
+from keras import layers, models, optimizers
 
 class TrainingLogger:
 
